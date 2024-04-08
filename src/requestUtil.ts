@@ -7,7 +7,7 @@ export interface BareRemote {
 
 export type BareHeaders = Record<string, string | string[]>;
 
-export function randomHex(byteLength: number) {
+export function randomHex(byteLength: number): string {
 	const bytes = new Uint8Array(byteLength);
 	crypto.getRandomValues(bytes);
 	let hex = '';
@@ -22,7 +22,7 @@ export async function bareFetch(
 	signal: AbortSignal,
 	requestHeaders: BareHeaders,
 	remote: BareRemote
-) {
+): Promise<Response> {
 	return await fetch(
 		`${remote.protocol}//${remote.host}:${remote.port}${remote.path}`,
 		{
@@ -40,7 +40,7 @@ export async function upgradeBareFetch(
 	signal: AbortSignal,
 	requestHeaders: BareHeaders,
 	remote: BareRemote
-) {
+): Promise<[Response, WebSocket]> {
 	const res = await fetch(
 		`${remote.protocol}//${remote.host}:${remote.port}${remote.path}`,
 		{
@@ -50,7 +50,7 @@ export async function upgradeBareFetch(
 		}
 	);
 
-	if (!res.webSocket) throw new Error("server didn't accept WebSocket");
+	if (!res.webSocket) throw new Error("Server didn't accept WebSocket");
 
-	return [res, res.webSocket] as [Response, WebSocket];
+	return [res, res.webSocket];
 }

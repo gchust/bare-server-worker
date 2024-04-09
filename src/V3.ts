@@ -89,41 +89,27 @@ function readHeaders(request: Request): BareHeaderData {
 
 	const headers = joinHeaders(request.headers);
 
-	for (const remoteProp of ['host', 'port', 'protocol', 'path']) {
-		const header = `x-bare-${remoteProp}`;
+	if (headers.has('x-bare-url')) {
+		const url = new URL(headers.get('x-bare-url')!);
 
-		if (headers.has(header)) {
-			const value = headers.get(header)!;
-
-			switch (remoteProp) {
-				case 'port':
-					if (isNaN(parseInt(value))) {
-						throw new BareError(400, {
-							code: 'INVALID_BARE_HEADER',
-							id: `request.headers.${header}`,
-							message: `Header was not a valid integer.`,
-						});
-					}
-					break;
-				case 'protocol':
-					if (!validProtocols.includes(value)) {
-						throw new BareError(400, {
-							code: 'INVALID_BARE_HEADER',
-							id: `request.headers.${header}`,
-							message: `Header was invalid`,
-						});
-					}
-					break;
-			}
-
-			remote[remoteProp] = value;
-		} else {
+		if (!validProtocols.includes(url.protocol)) {
 			throw new BareError(400, {
-				code: 'MISSING_BARE_HEADER',
-				id: `request.headers.${header}`,
-				message: `Header was not specified.`,
+				code: 'INVALID_BARE_HEADER',
+				id: `request.headers.x-bare-url`,
+				message: `Invalid protocol specified in URL.`,
 			});
 		}
+
+		remote.protocol = url.protocol;
+		remote.host = url.host;
+		remote.port = url.port;
+		remote.path = url.pathname;
+	} else {
+		throw new BareError(400, {
+			code: 'MISSING_BARE_HEADER',
+			id: `request.headers.x-bare-url`,
+			message: `Header was not specified.`,
+		});
 	}
 
 	if (headers.has('x-bare-headers')) {
@@ -258,9 +244,9 @@ const tunnelRequest: RouteCallback = async (request) => {
 
 	const responseHeaders = new Headers();
 
-	for (const header of passHeaders) {
+	for (const [header, value] of passHeaders) {
 		if (!response.headers.has(header)) continue;
-		responseHeaders.set(header, response.headers.get(header)!);
+		responseHeaders.set(header, value);
 	}
 
 	const status = passStatus.includes(response.status) ? response.status : 200;
@@ -298,7 +284,7 @@ const getMeta: RouteCallback = async (request, options) => {
 	const id = request.headers.get('x-bare-id')!;
 	const meta = await options.database.get(id);
 
-	if (meta?.value.v !== 3)
+	if (meta?.value.v !== 2)
 		throw new BareError(400, {
 			code: 'INVALID_BARE_HEADER',
 			id: 'request.headers.x-bare-id',
@@ -337,7 +323,7 @@ const newMeta: RouteCallback = async (request, options) => {
 	await options.database.set(id, {
 		expires: Date.now() + metaExpiration,
 		value: {
-			v: 3,
+			v: 2,
 			remote,
 			sendHeaders,
 			forwardHeaders,
@@ -359,7 +345,7 @@ const tunnelSocket: RouteCallback = async (request, options) => {
 
 	const meta = await options.database.get(id);
 
-	if (meta?.value.v !== 3)
+	if (meta?.value.v !== 2)
 		throw new BareError(400, {
 			code: 'INVALID_BARE_HEADER',
 			id: `request.headers.sec-websocket-protocol`,
@@ -397,7 +383,5 @@ const tunnelSocket: RouteCallback = async (request, options) => {
 
 export default function registerV3(server: Server) {
 	server.routes.set('/v3/', tunnelRequest);
-	server.routes.set('/v3/ws-new-meta', newMeta);
-	server.routes.set('/v3/ws-meta', getMeta);
 	server.socketRoutes.set('/v3/', tunnelSocket);
 }

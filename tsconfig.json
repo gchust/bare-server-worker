@@ -1,16 +1,22 @@
 {
 	"compilerOptions": {
 		"outDir": "dist",
-		"types": ["@cloudflare/workers-types"],
-		"lib": ["ESNext"],
-		"target": "ESNext",
-		"module": "ESNext",
+		"types": [
+			"@cloudflare/workers-types"
+		],
+		"lib": [
+			"ESNext"
+		],
+		"module": "NodeNext",
+		"moduleResolution": "NodeNext",
 		"strict": true,
 		"stripInternal": true,
 		"esModuleInterop": true,
-		"declaration": false,
+		"declaration": true,
 		"sourceMap": true,
 		"resolveJsonModule": false
 	},
-	"include": ["src"]
+	"include": [
+		"src"
+	]
 }

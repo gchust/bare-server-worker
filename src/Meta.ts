@@ -15,8 +15,16 @@ export interface MetaV2 {
 	forwardHeaders: string[];
 }
 
+export interface MetaV3 {
+	v: 3;
+	response?: { status: number; statusText: string; headers: BareHeaders };
+	sendHeaders: BareHeaders;
+	remote: BareRemote;
+	forwardHeaders: string[];
+}
+
 export default interface CommonMeta {
-	value: MetaV1 | MetaV2;
+	value: MetaV1 | MetaV2 | MetaV3; // Updated to include MetaV3
 	expires: number;
 }
 

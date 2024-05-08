@@ -34,8 +34,6 @@
 	},
 	"dependencies": {
 		"async-exit-hook": "^2.0.1",
-		"commander": "^9.4.1",
-		"dotenv": "^16.0.3",
 		"http-errors": "^2.0.0",
 		"source-map-support": "^0.5.21"
 	},

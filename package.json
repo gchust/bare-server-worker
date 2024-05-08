@@ -7,6 +7,7 @@
 		"url": "https://github.com/tomphttp/bare-server-node/issues",
 		"email": "tomp@sys32.dev"
 	},
+	"main": "dist/index.js",
 	"repository": {
 		"type": "git",
 		"url": "https://github.com/tomphttp/bare-server-node.git"
